@@ -1,3 +1,4 @@
+import numpy as np
 import json
 import pickle
 import jsonlines
@@ -13,6 +14,7 @@ def parse_args():
     parser.add_argument('qa_entities', help='path to QA entities file (jsonl)')
     parser.add_argument('training_entities', help='path to training entities file (npz)')
     parser.add_argument('output_dir', help='path to output directory')
+    parser.add_argument('--output_prefix', default=None, type=str, help='prefix to the output files')
     parser.add_argument('--qa_split', default='validation', help='split of qa dataset used')
     parser.add_argument('--type', default='qa_co_occurrence', choices=['qa_co_occurrence','q_occurrence','a_occurrence'], help='type of entity occurrence/co-occurrence to count')
     parser.add_argument('--save_examples', default=False, action='store_true', help='save examples where each relevant fact occurs')
@@ -56,10 +58,11 @@ def count_co_occurrences(training_entities, q_entities, a_entities, common_a_ent
 
 def main(args):
     print('Loading training entities')
-    training_entities = np.load(args.training_entities)
+    # training_entities = np.load(args.training_entities)
+    training_keys = list(np.load(args.training_entities).keys())
     
     print('Sorting training entity lists')
-    training_entities = utils.sort_entity_map(training_entities)
+    training_entities = utils.sort_entity_map(training_keys, args.training_entities)
 
     print('Counting occurrences')
     occurrences = []
@@ -99,11 +102,15 @@ def main(args):
 
 
     fname = f'{args.type}_split={args.qa_split}.json'
+    if args.output_prefix is not None:
+        fname = args.output_prefix+fname
     with open(os.path.join(args.output_dir, fname), 'w') as f:
         json.dump(occurrences, f)
     
     if args.save_examples:
         fname = f'{args.type}_examples_split={args.qa_split}.pkl'
+        if args.output_prefix is not None:
+            fname = args.output_prefix+fname
         with open(os.path.join(args.output_dir, fname), 'wb') as f:
             pickle.dump({'examples': examples, 'qa_pairs': qa_pairs}, f)
 

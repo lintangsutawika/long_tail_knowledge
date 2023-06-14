@@ -12,7 +12,7 @@ from huggingface_hub import HfApi
 def parse_args():
     parser = argparse.ArgumentParser()
     parser.add_argument('outdir', help='output directory')
-    parser.add_argument('--dataset', default='openwebtext', choices=['openwebtext','the_pile','roots','wikipedia','c4'], help='dataset to entity link')
+    parser.add_argument('--dataset', default='openwebtext', choices=['json', 'openwebtext','the_pile','roots','wikipedia','c4'], help='dataset to entity link')
     parser.add_argument('--wikipedia_path', default=None, help='path to wikipedia HFDataset if --dataset wikipedia')
     parser.add_argument('--nprocs', default=4, type=int, help='number of processes')
     parser.add_argument('--start', default=0, type=int, help='start index')
@@ -25,7 +25,8 @@ def parse_args():
     return args
 
 def annotate(text, port, confidence, support, retry=5):
-    endpoint = f'http://localhost:{port}/rest/annotate'
+    # endpoint = f'http://localhost:{port}/rest/annotate'
+    endpoint = "https://api.dbpedia-spotlight.org/en/annotate"
     try:
         return spotlight.annotate(endpoint, text, confidence=confidence, support=support)
     except spotlight.SpotlightException:
@@ -67,6 +68,11 @@ def load_dataset(dataset, path, start, end, auth_token):
         if end != -1:
             wiki = wiki[start:end]
         return wiki
+    elif dataset == 'json':
+        d = datasets.load_dataset('json', data_files=path)['train']
+        if end != -1:
+            d = datasets.Dataset.from_dict(d[start:end])
+        return d
              
 def main(args):
     entity_map = defaultdict(set)    
