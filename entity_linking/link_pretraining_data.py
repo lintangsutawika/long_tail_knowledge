@@ -12,6 +12,7 @@ from huggingface_hub import HfApi
 def parse_args():
     parser = argparse.ArgumentParser()
     parser.add_argument('outdir', help='output directory')
+    parser.add_argument('--output_prefix', default=None, type=str, help='prefix to the output files')
     parser.add_argument('--dataset', default='openwebtext', choices=['json', 'openwebtext','the_pile','roots','wikipedia','c4'], help='dataset to entity link')
     parser.add_argument('--wikipedia_path', default=None, help='path to wikipedia HFDataset if --dataset wikipedia')
     parser.add_argument('--nprocs', default=4, type=int, help='number of processes')
@@ -87,6 +88,8 @@ def main(args):
         entity_map[k] = np.array(list(v), dtype=np.int32)
     
     filename = f'{args.dataset}_{args.start}_{args.end}_entity_map.npz' if args.end != -1 else f'{args.dataset}_entity_map.npz'
+    if args.output_prefix is not None:
+        filename = args.output_prefix + filename
     output_file = os.path.join(args.outdir, filename)
     print(f'Saving entities to {output_file}')
     np.savez_compressed(output_file, **entity_map)
