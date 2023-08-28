@@ -26,8 +26,8 @@ def parse_args():
     return args
 
 def annotate(text, port, confidence, support, retry=5):
-    # endpoint = f'http://localhost:{port}/rest/annotate'
-    endpoint = "https://api.dbpedia-spotlight.org/en/annotate"
+    endpoint = f'http://localhost:{port}/rest/annotate'
+    # endpoint = "https://api.dbpedia-spotlight.org/en/annotate"
     try:
         return spotlight.annotate(endpoint, text, confidence=confidence, support=support)
     except spotlight.SpotlightException:

@@ -49,3 +49,35 @@ The entities in the `q_entities` and `a_entities` lists are also dictionaries wi
 ## Code
 - The code and instructions for running the entity linker can be found in `entity_linking/`
 - The code and instructions for running the relevant document counting heuristic can be found in `relevant_docs/`
+
+
+## Pythia
+
+With a dataset in jsonl format `{'text': ...}` from `scripts/`:
+1. Use `process_linking_each_step.sh` to extract entities using DBpedia Spotlight. This will result in an `npz` file that is needed for the next step.
+2. Run `process_count_each_step.sh` to return a file that connects entities sampled to each trivia_qa sample.
+
+Notes: The scripts above is meant to process each step from the Pythia training data. This can be modified to run on any range or an entire dataset like the original paper.
+
+## Setting Up DBPediaSpotlight
+
+An alternative to setup DBpedia endpoint for entity detection. You can run multiple server with different port value for faster processing.
+
+```
+# download main jar
+wget https://repo1.maven.org/maven2/org/dbpedia/spotlight/rest/1.1/rest-1.1-jar-with-dependencies.jar
+# download latest model (last checked on 10/10/2022) (assuming en model)
+wget -O en.tar.gz http://downloads.dbpedia.org/repo/dbpedia/spotlight/spotlight-model/2022.03.01/spotlight-model_lang=en.tar.gz
+# extract model
+tar xzf en.tar.gz
+# install java
+sudo apt install default-jre
+# run server
+java -Xmx8G -jar rest-1.1-jar-with-dependencies.jar en http://localhost:2222/res
+
+# then can access API:
+curl http://localhost:2222/rest/annotate \
+ --data-urlencode "text=President Obama called Wednesday on Congress to extend a tax break for students included in last year's economic stimulus package, arguing that the policy provides more generous assistance." \
+ --data "confidence=0.35" \
+ -H "Accept: text/turtle"
+```
